@@ -1,8 +1,8 @@
 # A project that is used to add a nominee to a crypto wallet
 # This project demonstrates basic working of the service that automatically transfers available crypto currency to the nominee wallet after certain hearbeat time period
-# The owner needs to sign the service for every heartbeat tine period to stop tranfering funds to the nominee wallet
+# The owner needs to sign the service for every heartbeat time period to stop tranfering funds to the nominee wallet
 # Used Hardhat for simulating local block chain network and generating Fake Funds with fake wallets woth address
-# This also contains a kill switch for immedeiate funds trasfer to nominee account in case of urgency
+# This also contains a kill switch for immediate funds trasfer to nominee account in case of urgency
 
 After Installing hardhat v2 from npm 
 Configure the Hardhat to the project then,
