@@ -1,4 +1,4 @@
-# A projext that is used to add a nominee to a crypto wallet
+# A project that is used to add a nominee to a crypto wallet
 # This project demonstrates basic working of the service that automatically transfers available crypto currency to the nominee wallet after certain hearbeat time period
 # The owner needs to sign the service for every heartbeat tine period to stop tranfering funds to the nominee wallet
 # Used Hardhat for simulating local block chain network and generating Fake Funds with fake wallets woth address
