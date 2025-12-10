@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LostWish – Dead Man Switch DApp</title>
+
+  <!-- Ethers v6 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2933 0, #020617 55%);
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 960px;
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+      border: 1px solid #1f2937;
+      padding: 20px 24px 24px;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1f2937;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .app-title {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .app-subtitle {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #d1d5db;
+    }
+
+    .layout {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .panel {
+      flex: 1 1 280px;
+      background: #020617;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #1f2937;
+      min-width: 0;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #e5e7eb;
+    }
+
+    .field-label {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .field-box {
+      font-size: 13px;
+      background: #030712;
+      border-radius: 8px;
+      padding: 8px 10px;
+      border: 1px solid #111827;
+      word-break: break-all;
+      min-height: 30px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #111827;
+      background: #030712;
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    .button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.15s, transform 0.05s;
+    }
+
+    .button:active {
+      transform: scale(0.98);
+    }
+
+    .button-primary {
+      background: #2563eb;
+      color: #f9fafb;
+    }
+
+    .button-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .button-soft {
+      background: #111827;
+      color: #e5e7eb;
+      border: 1px solid #1f2937;
+    }
+
+    .button-soft:hover {
+      background: #0b1120;
+    }
+
+    .button-danger {
+      background: #b91c1c;
+      color: #f9fafb;
+    }
+
+    .button-danger:hover {
+      background: #991b1b;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .status-tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid #374151;
+      background: #030712;
+    }
+
+    .status-tag.owner {
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
+
+    .status-tag.nominee {
+      border-color: #eab308;
+      color: #fef9c3;
+    }
+
+    .status-tag.other {
+      border-color: #4b5563;
+      color: #e5e7eb;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 6px;
+      min-height: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="app-header">
+      <div>
+        <div class="app-title">LostWish</div>
+        <div class="app-subtitle">Dead Man Switch and Inheritance Vault</div>
+      </div>
+      <div class="pill" id="networkInfo">Network: Hardhat (localhost)</div>
+    </div>
+
+    <div class="layout">
+      <!-- Left panel: Connection + Contract -->
+      <div class="panel">
+        <div class="panel-title">Connection</div>
+
+        <div class="field-label">Connected Wallet</div>
+        <div class="field-box" id="walletBox">Not connected</div>
+
+        <div class="status-row">
+          <div class="status-tag other" id="roleTag">Role: Unknown</div>
+        </div>
+
+        <button class="button button-primary" id="connectBtn">
+          Connect Wallet
+        </button>
+
+        <div style="height: 1px; background:#111827; margin: 14px 0;"></div>
+
+        <div class="panel-title">Contract</div>
+
+        <div class="field-label">Vault Contract Address</div>
+        <input id="contractAddr" class="input" placeholder="Paste deployed InheritanceVault address" />
+
+        <button class="button button-soft" id="loadBtn">
+          Load Contract
+        </button>
+
+        <div class="small">
+          Every time you restart <code>npx hardhat node</code>, redeploy and paste the new address.
+        </div>
+      </div>
+
+      <!-- Right panel: Vault status + actions -->
+      <div class="panel">
+        <div class="panel-title">Vault Status</div>
+
+        <div class="field-label">Vault Balance</div>
+        <div class="field-box" id="balanceBox">-</div>
+
+        <div class="field-label" style="margin-top:10px;">Owner Active</div>
+        <div class="field-box" id="activeBox">-</div>
+
+        <div class="field-label" style="margin-top:10px;">Last Check-In (Unix timestamp)</div>
+        <div class="field-box" id="lastCheckBox">-</div>
+
+        <div class="field-label" style="margin-top:10px;">Heartbeat Interval (seconds)</div>
+        <div class="field-box" id="intervalBox">-</div>
+
+        <div class="small" id="hintBox"></div>
+
+        <div style="height: 1px; background:#111827; margin: 14px 0;"></div>
+
+        <div class="panel-title">Actions</div>
+
+        <button class="button button-soft" id="aliveBtn">
+          I Am Alive (keepAlive)
+        </button>
+
+        <button class="button button-danger" id="claimBtn">
+          Claim Inheritance (Nominee)
+        </button>
+
+        <button class="button button-danger" id="killBtn">
+          Kill Switch (Owner → Nominee)
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  console.log("Script loaded");
+
+  let provider;
+  let signer;
+  let currentAccount;
+  let vault;
+
+  let contractOwner = null;
+  let contractNominee = null;
+  let countdownIntervalId = null;
+
+  const abi = [
+    "function owner() view returns (address)",
+    "function nominee() view returns (address)",
+    "function heartbeatInterval() view returns (uint256)",
+    "function lastCheckIn() view returns (uint256)",
+    "function keepAlive() external",
+    "function claim() external",
+    "function emergencyTransferToNominee() external",
+    "function isOwnerActive() public view returns (bool)",
+    "function getBalance() external view returns (uint256)"
+  ];
+
+  window.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM loaded");
+
+    document.getElementById("connectBtn").addEventListener("click", connectWallet);
+    document.getElementById("loadBtn").addEventListener("click", loadContract);
+    document.getElementById("aliveBtn").addEventListener("click", keepAlive);
+    document.getElementById("claimBtn").addEventListener("click", claimFunds);
+    document.getElementById("killBtn").addEventListener("click", killSwitchTransfer);
+  });
+
+  function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
+  }
+
+  function formatRole() {
+    const tag = document.getElementById("roleTag");
+    if (!tag || !currentAccount || !contractOwner || !contractNominee) {
+      if (tag) {
+        tag.className = "status-tag other";
+        tag.innerText = "Role: Unknown";
+      }
+      return;
+    }
+
+    const addrLower = currentAccount.toLowerCase();
+    const ownerLower = contractOwner.toLowerCase();
+    const nomineeLower = contractNominee.toLowerCase();
+
+    if (addrLower === ownerLower) {
+      tag.className = "status-tag owner";
+      tag.innerText = "Role: Owner";
+    } else if (addrLower === nomineeLower) {
+      tag.className = "status-tag nominee";
+      tag.innerText = "Role: Nominee";
+    } else {
+      tag.className = "status-tag other";
+      tag.innerText = "Role: Other";
+    }
+  }
+
+  function startCountdown(deadline) {
+    if (countdownIntervalId !== null) {
+      clearInterval(countdownIntervalId);
+      countdownIntervalId = null;
+    }
+
+    const hintBox = document.getElementById("hintBox");
+    if (!hintBox) return;
+
+    function update() {
+      const nowSec = Math.floor(Date.now() / 1000);
+      const remaining = Math.floor(deadline - nowSec);
+
+      if (remaining <= 0) {
+        hintBox.innerText = "Nominee can claim now if owner has not called keepAlive().";
+        clearInterval(countdownIntervalId);
+        countdownIntervalId = null;
+        return;
+      }
+
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      const mm = String(mins).padStart(2, "0");
+      const ss = String(secs).padStart(2, "0");
+
+      hintBox.innerText =
+        "Time until nominee can claim (approx): " + mm + ":" + ss;
+    }
+
+    update();
+    countdownIntervalId = setInterval(update, 1000);
+  }
+
+  async function connectWallet() {
+    try {
+      console.log("Connect button clicked");
+
+      if (typeof window.ethereum === "undefined") {
+        alert("MetaMask not detected. Please install MetaMask first.");
+        return;
+      }
+
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+
+      currentAccount = await signer.getAddress();
+      setText("walletBox", currentAccount);
+      console.log("Wallet connected:", currentAccount);
+
+      formatRole();
+
+      if (vault) {
+        vault = vault.connect(signer);
+        await refreshData();
+      }
+    } catch (err) {
+      console.error("Connect error:", err);
+      alert("Wallet connection failed: " + (err.message || err));
+    }
+  }
+
+  async function loadContract() {
+    try {
+      if (!signer) {
+        alert("Please connect wallet first.");
+        return;
+      }
+
+      const addr = document.getElementById("contractAddr").value.trim();
+      if (!addr) {
+        alert("Please paste the contract address.");
+        return;
+      }
+
+      vault = new ethers.Contract(addr, abi, signer);
+      console.log("Contract loaded at:", addr);
+
+      await refreshData();
+    } catch (err) {
+      console.error("Load contract error:", err);
+      alert("Failed to load contract: " + (err.message || err));
+    }
+  }
+
+  async function refreshData() {
+    try {
+      if (!vault) return;
+
+      const [bal, active, interval, lastCheck, ownerAddr, nomineeAddr] =
+        await Promise.all([
+          vault.getBalance(),
+          vault.isOwnerActive(),
+          vault.heartbeatInterval(),
+          vault.lastCheckIn(),
+          vault.owner(),
+          vault.nominee()
+        ]);
+
+      contractOwner = ownerAddr;
+      contractNominee = nomineeAddr;
+
+      setText("balanceBox", ethers.formatEther(bal) + " ETH");
+      setText("activeBox", String(active));
+      setText("lastCheckBox", lastCheck.toString());
+      setText("intervalBox", interval.toString());
+
+      const intervalNum = Number(interval);
+      const lastCheckNum = Number(lastCheck);
+      const hintEl = document.getElementById("hintBox");
+
+      if (intervalNum > 0 && lastCheckNum > 0) {
+        const deadline = lastCheckNum + intervalNum;
+        startCountdown(deadline);
+      } else {
+        if (hintEl) hintEl.innerText = "";
+        if (countdownIntervalId !== null) {
+          clearInterval(countdownIntervalId);
+          countdownIntervalId = null;
+        }
+      }
+
+      formatRole();
+    } catch (err) {
+      console.error("Refresh error:", err);
+      alert("Failed to fetch contract data: " + (err.message || err));
+    }
+  }
+
+  async function keepAlive() {
+    try {
+      if (!vault) {
+        alert("Load the contract first.");
+        return;
+      }
+
+      const tx = await vault.keepAlive();
+      console.log("keepAlive tx:", tx.hash);
+
+      await tx.wait();
+      alert("Owner marked alive.");
+
+      await refreshData();
+    } catch (err) {
+      console.error("keepAlive error:", err);
+      alert("keepAlive failed: " + (err.message || err));
+    }
+  }
+
+  async function claimFunds() {
+    try {
+      if (!vault) {
+        alert("Load the contract first.");
+        return;
+      }
+
+      const tx = await vault.claim();
+      console.log("claim tx:", tx.hash);
+
+      await tx.wait();
+      alert("Funds claimed by nominee.");
+
+      await refreshData();
+    } catch (err) {
+      console.error("Claim error:", err);
+      alert("Claim failed: " + (err.message || err));
+    }
+  }
+
+  async function killSwitchTransfer() {
+    try {
+      if (!vault) {
+        alert("Load the contract first.");
+        return;
+      }
+
+      const tx = await vault.emergencyTransferToNominee();
+      console.log("kill switch tx:", tx.hash);
+
+      await tx.wait();
+      alert("All funds transferred to nominee by owner (kill switch).");
+
+      await refreshData();
+    } catch (err) {
+      console.error("Kill switch error:", err);
+      alert("Kill switch failed: " + (err.message || err));
+    }
+  }
+</script>
+
+</body>
+</html>
